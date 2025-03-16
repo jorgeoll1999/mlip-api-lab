@@ -3,38 +3,94 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>API Documentation</title>
+    <title>Image Text Extractor</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 50px;
+        }
+        input {
+            width: 60%;
+            padding: 10px;
+            margin: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 15px;
+            border: none;
+            background-color: #28a745;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        textarea {
+            width: 60%;
+            height: 150px;
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+    </style>
 </head>
 <body>
-    <h1>API Documentation</h1>
 
-    <section>
-        <h2>Overview</h2>
-        <p>
-            This API allows you to analyze images by sending a GET request to the endpoint.
-        </p>
-    </section>
+    <h1>Image Text Extractor</h1>
+    <p>Paste the image URL below and click "Analyze Image" to extract text.</p>
 
-    <section>
-        <h2>API Endpoint</h2>
-        <p>
-            The API is accessible at: <code>http://localhost:3000/api/v1/analysis/</code>
-        </p>
-    </section>
+    <!-- Formulario -->
+    <form id="imageForm">
+        <input type="text" id="imageUrl" placeholder="Enter image URL..." required>
+        <button type="submit">Analyze Image</button>
+    </form>
 
-    <section>
-        <h2>Request</h2>
-        <p>
-            To analyze an image, send a GET request with a JSON object containing a single field <code>"uri"</code> pointing to the image to be analyzed.
-        </p>
-        <pre>
-            <code>
-{
-    "uri": "path/to/your/image.jpg"
-}
-            </code>
-        </pre>
-    </section>
+    <h3>Extracted Text:</h3>
+    <textarea id="responseBox" readonly></textarea>
+
+    <script>
+        document.getElementById('imageForm').addEventListener('submit', async function(event) {
+            event.preventDefault();  // Evita que la página se recargue
+            
+            const imageUrl = document.getElementById('imageUrl').value;
+            const responseBox = document.getElementById('responseBox');
+
+            // Mostrar que está procesando
+            responseBox.value = "Processing...";
+
+            // Crear el JSON con la URL
+            const data = JSON.stringify({ uri: imageUrl });
+
+            try {
+                console.log("📤 Enviando JSON a API:", data);  // Verificar que el JSON se está enviando
+
+                const response = await fetch('http://127.0.0.1:3000/api/v1/analysis/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: data
+                });
+
+                console.log("📥 Respuesta recibida:", response);  // Verificar respuesta HTTP
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                console.log("📦 Respuesta JSON de la API:", result);  // Verificar JSON recibido
+
+                // Mostrar el resultado en el textarea
+                responseBox.value = result.text || "No text detected.";
+            } catch (error) {
+                responseBox.value = "Error connecting to the server.";
+                console.error("❌ Error en fetch:", error);
+            }
+        });
+    </script>
 
 </body>
 </html>
